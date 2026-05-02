@@ -26,22 +26,31 @@ jobs:
             repo: aseprite
             match: Aseprite-.*?-Source.zip
 
+jobs:
+  get-date:
+    name: Get Date Time
+    runs-on: ubuntu-latest
+    outputs:
+      datetime: ${{ steps.date.outputs.datetime }}
+    steps:
+      - id: date
+        run: echo "datetime=$(date +'%Y-%m-%d-%H-%M')" >> $GITHUB_OUTPUT
+
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: fetch-aseprite-info
+    needs: get-date
     permissions:
       contents: write
     outputs:
-      download-link: ${{ needs.fetch-aseprite-info.outputs.download-link }}
-      release-tag: ${{ needs.fetch-aseprite-info.outputs.release-tag }}
+      release-tag: Aseprite-${{ needs.get-date.outputs.datetime }}
     steps:
       - uses: actions/checkout@v2
       - uses: ncipollo/release-action@v1
         with:
-          tag: ${{ needs.fetch-aseprite-info.outputs.release-tag }}
-          body: Aseprite-${{ needs.fetch-aseprite-info.outputs.release-tag }}
-          skipIfReleaseExists: true
+          tag: Aseprite-${{ needs.get-date.outputs.datetime }}
+          body: "DevVersion：${{ needs.get-date.outputs.datetime }}"
+          skipIfReleaseExists: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
   build-aseprite:
